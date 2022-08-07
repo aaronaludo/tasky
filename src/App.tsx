@@ -1,21 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 import InputField from "./components/InputField";
 import TodoList from "./components/TodoList";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
-import { Todo } from "./models/models";
+import { Todo, Task} from "./models/models";
+import axios from "axios";
 
 const App: React.FC = () => {
   const [todo, setTodo] = useState<string>("");
   const [todos, setTodos] = useState<Array<Todo>>([]);
   const [CompletedTodos, setCompletedTodos] = useState<Array<Todo>>([]);
-  console.log(todo);
+
+  useEffect(()=> {
+    axios.get('http://127.0.0.1:8000/api/tasks')
+    .then(res => {
+      setTodos(res.data.filter(({task_status_id}: Task) => task_status_id === 1).map(({id, name} : Task) => ({id:id, todo:name, isDone: false})));
+      setCompletedTodos(res.data.filter(({task_status_id}: Task) => task_status_id === 2).map(({id, name} : Task) => ({id:id, todo:name, isDone: true})));
+    });
+
+  }, []);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (todo) {
-      setTodos([...todos, { id: Date.now(), todo, isDone: false }]);
+      axios.post(`http://127.0.0.1:8000/api/tasks/create`, {name: todo, task_status_id: 1, arrangement_id: todos.length + 1})
+      .then(res => setTodos([...todos, { id: res.data.id, todo: res.data.name, isDone: false }]));
       setTodo("");
     }
   };
@@ -45,13 +55,16 @@ const App: React.FC = () => {
       add = complete[source.index];
       complete.splice(source.index, 1);
     }
+    
 
     // Destination Logic
     if (destination.droppableId === "TodosList") {
-      active.splice(destination.index, 0, add);
+      active.splice(destination.index, 0, {...add, isDone: false});
     } else {
-      complete.splice(destination.index, 0, add);
+      complete.splice(destination.index, 0, {...add, isDone: true});
     }
+
+    axios.patch(`http://127.0.0.1:8000/api/tasks/${add.id}`, {name: add.todo, task_status_id: destination.droppableId === "TodosList" ? 1 : 2, complete, active});
 
     setCompletedTodos(complete);
     setTodos(active);

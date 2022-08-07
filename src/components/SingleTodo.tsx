@@ -4,6 +4,7 @@ import { AiFillEdit, AiFillDelete } from "react-icons/ai";
 import { MdDone } from "react-icons/md";
 import { Todo } from "../models/models";
 import { Draggable } from "react-beautiful-dnd";
+import axios from "axios";
 
 const SingleTodo: React.FC<{
   index: number;
@@ -29,6 +30,8 @@ const SingleTodo: React.FC<{
 
   const handleDelete = (id: number) => {
     setTodos(todos.filter((todo) => todo.id !== id));
+    axios.delete(`http://127.0.0.1:8000/api/tasks/${id}`)
+    .then(response => console.log(response.data));
   };
 
   const handleDone = (id: number) => {
