@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useRef } from "react";
 import { AiFillEdit, AiFillDelete } from "react-icons/ai";
-import { MdDone } from "react-icons/md";
-import { Todo } from "../models/models";
+import { Todo } from "../../models/models";
 import { Draggable } from "react-beautiful-dnd";
 import axios from "axios";
 
@@ -11,20 +10,23 @@ const SingleTodo: React.FC<{
   todo: Todo;
   todos: Array<Todo>;
   setTodos: React.Dispatch<React.SetStateAction<Array<Todo>>>;
-}> = ({ index, todo, todos, setTodos }) => {
+  taskStatus: string;
+}> = ({ index, todo, todos, setTodos, taskStatus }) => {
   const [edit, setEdit] = useState<boolean>(false);
   const [editTodo, setEditTodo] = useState<string>(todo.todo);
-
   const inputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     inputRef.current?.focus();
   }, [edit]);
 
   const handleEdit = (e: React.FormEvent, id: number) => {
     e.preventDefault();
+
     setTodos(
       todos.map((todo) => (todo.id === id ? { ...todo, todo: editTodo } : todo))
     );
+    axios.patch(`http://127.0.0.1:8000/api/tasks/${id}`, {name: editTodo, task_status_id: taskStatus === 'Active' ? 1 : 2, complete: [], active: []});
     setEdit(false);
   };
 
@@ -32,14 +34,6 @@ const SingleTodo: React.FC<{
     setTodos(todos.filter((todo) => todo.id !== id));
     axios.delete(`http://127.0.0.1:8000/api/tasks/${id}`)
     .then(response => console.log(response.data));
-  };
-
-  const handleDone = (id: number) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, isDone: !todo.isDone } : todo
-      )
-    );
   };
 
   return (
@@ -59,8 +53,6 @@ const SingleTodo: React.FC<{
               className="todos__single--text"
               ref={inputRef}
             />
-          ) : todo.isDone ? (
-            <s className="todos__single--text">{todo.todo}</s>
           ) : (
             <span className="todos__single--text">{todo.todo}</span>
           )}
@@ -68,7 +60,7 @@ const SingleTodo: React.FC<{
             <span
               className="icon"
               onClick={() => {
-                if (!edit && !todo.isDone) {
+                if (!edit) {
                   setEdit(!edit);
                 }
               }}
@@ -77,9 +69,6 @@ const SingleTodo: React.FC<{
             </span>
             <span className="icon" onClick={() => handleDelete(todo.id)}>
               <AiFillDelete />
-            </span>
-            <span className="icon" onClick={() => handleDone(todo.id)}>
-              <MdDone />
             </span>
           </div>
         </form>

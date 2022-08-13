@@ -1,6 +1,6 @@
 import React from "react";
-import { Todo } from "../models/models";
-import SingleTodo from "./SingleTodo";
+import { Todo } from "../../../models/models";
+import SingleTodo from "../../common/SingleTodo";
 import { Droppable } from "react-beautiful-dnd";
 
 interface props {
@@ -33,6 +33,7 @@ const TodoList: React.FC<props> = ({
                 todo={todo}
                 key={todo.id}
                 setTodos={setTodos}
+                taskStatus={`Active`}
               />
             ))}
             {provided.placeholder}
@@ -56,6 +57,7 @@ const TodoList: React.FC<props> = ({
                 todo={todo}
                 key={todo.id}
                 setTodos={setCompletedTodos}
+                taskStatus={`Complete`}
               />
             ))}
             {provided.placeholder}

@@ -1,7 +1,6 @@
 export interface Todo {
   id: number;
   todo: string;
-  isDone: boolean;
 }
 export interface Task {
   id: number;
